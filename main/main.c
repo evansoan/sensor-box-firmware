@@ -11,75 +11,10 @@
 #include "sensor-box-serial.h"
 #include "sensor-box-wifi.h"
 
-// DEFINITIONS:
-// I had to place them here and include an extern directive in the header, otherwise the
-// compiler got mad at me
-
-const char* ssid     = "Main";
-const char* password = "5139191357";
 
 // Cloud Function Endpoint
 
-// Organization, Site, and Zone IDs
-const char* ORGANIZATION_ID = "GS6e4032WK70vQ42WTYc";
-const char* SITE_ID         = "5LvgyAAaFpAmlfcUrpTU";
-const char* ZONE_ID         = "BKwm5W3qxjee8cIHvSQx";  //differs between zones
-const short ZONE_NUM = 2;  //likewise differs between zones
-
-// Sensor IDs
-
-// This whole section needs to be reworked, as several sensors were added & removed
-//
-const char* SENSOR_ID_SOIL          = "vpHzjeTQMc7fUdzUqmFN";
-const char* SENSOR_ID_CO2_TVOC      = "8jTNyQ7lR1fgOjoOT5Yt";
-const char* SENSOR_ID_BATTERY       = "LiVAa6Oj2CYpiIlGTuUA";
-
-const char* SENSOR_ID_WIND_DIR      = "C2BP6ISRAa34eWEHOuwn";
-const char* SENSOR_ID_WIND_SPEED    = "DiqIKJ7KykTOWd4SXxNK";
-const char* SENSOR_ID_LEAF          = "O2AohIUWUOe7Sn8VnjcZ";
-const char* SENSOR_ID_LIGHT_485     = "sUvpUqZoS1XpBfUdicND"; //reading isn't added to the webapp yet
-const char* SENSOR_ID_CO2_T_H       = "dxIjJR4wp7xhZGVFxRAR";
-
-// Unit Constants
-const char* UNIT_FAHRENHEIT = "°F";
-const char* UNIT_PERCENT    = "%";
-const char* UNIT_LUX        = "lux";
-const char* UNIT_PPM        = "ppm";
-const char* UNIT_PPB        = "ppb";
-const char* UNIT_MOISTURE   = "VWC%";
-const char* UNIT_EC         = "μS/cm";
-const char* UNIT_VOLT       = "V";
-const char* UNIT_AMP        = "A";
-
-const char* UNIT_M_S        = "m/s";
-const char* UNIT_DEGREE     = "°";
-
-
-// -----------------------------
-// LED Pins
-// -----------------------------
-#define COMMON_ANODE true
-const gpio_num_t redPin   = 12; //was 0
-const gpio_num_t greenPin = 14; //was 18
-const gpio_num_t bluePin  = 27; //was 19
-
-
-// --------------
-// DIAGNOSTIC MODE PINS
-// --------------
-
-const gpio_num_t d1pin = 26; //was 17    //  ALL UPDATED
-const gpio_num_t d2pin = 25; //was 34;  now is the DHT pin
-const gpio_num_t d3pin = 18; //was 35;  now is SPARE_IO_2
-const gpio_num_t sw1pin = 2;
-const gpio_num_t sw2pin = 21; //was 15
-const gpio_num_t RS485_DIR_PIN = 5;
-
-
-
-
 uint32_t millis(void) {
-
   return (uint32_t) esp_timer_get_time() / 1000;
 }
 
@@ -124,7 +59,6 @@ void init_reading(struct Reading* sd) {
   sd->leafMoisture = 0;
 }
 
-
 // This tracks any sensor errors. It's used like a bitfield. If a sensor errors, it sets
 // the corresponding bit. The errors can be cleared from diagnostic mode.
 //
@@ -149,17 +83,6 @@ static uint16_t sensorErrors = 0; //one bit for each sensor
 
 */
 
-
-
-
-void preTransmission() {
-  gpio_set_level(RS485_DIR_PIN, 1);
-}
-
-void postTransmission() {
-  gpio_set_level(RS485_DIR_PIN, 0);
-}
-
 // this is a utility function that converts a uint16_t stored using 2's complement
 int16_t uintToint(uint16_t in) {
   if(in > 32767) { //it's a negative number
@@ -171,7 +94,7 @@ int16_t uintToint(uint16_t in) {
 // -----------------------------
 // Time / RTC helpers
 // -----------------------------
-// TODO: This all has to be rewritten.
+
 bool waitForTime(uint32_t timeoutMs) {
   struct tm timeinfo;
   uint32_t start = millis();
@@ -189,21 +112,10 @@ bool waitForTime(uint32_t timeoutMs) {
 
 }
 
-//this one initializes NTP. If it fails before timeoutMs, return false
-bool ntp_init(uint32_t timeoutMs) {
-  esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
-  esp_netif_sntp_init(&config);
-
-  if(esp_netif_sntp_sync_wait(pdMS_TO_TICKS(1000)) != ESP_OK) {
-    uart_printf("Failed to update system time within 10s timeout");
-    return false;
-  }
-  return true;
-}
 
 
 
-void setLEDColor(int r, int g, int b) {   // update this for blinking LED
+void setLEDColor(int r, int g, int b) {
   lastLED_R = r;
   lastLED_G = g;
   lastLED_B = b;
@@ -245,17 +157,6 @@ void saveSGP30Baseline() {
 
 */
 
-
-
-//setup:
-// wifi setup
-// I/O setups
-//  including I2C, RS-485
-// modbus setup
-// NTP fetch
-
-//TODO: All the library stuff here needs to be reworked
-
 void setup() {
   init_reading(&sensorData); //clears the sensorData struct
 
@@ -275,8 +176,9 @@ void setup() {
   ESP_ERROR_CHECK(uart_set_pin(0, 1, 3, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE,
         UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
 
-  uint8_t *uart0_rxdata = (uint8_t *) malloc(UART0_RX_BUF_SIZE);
-  uint8_t *uart0_txdata = (uint8_t *) malloc(UART0_TX_BUF_SIZE);
+  // I think these are unnecessary for the way I'm using UART here
+  //uint8_t *uart0_rxdata = (uint8_t *) malloc(UART0_RX_BUF_SIZE);
+  //uint8_t *uart0_txdata = (uint8_t *) malloc(UART0_TX_BUF_SIZE);
 
   //TODO: If we decide to add remote control over serial, this will need to be modified
   //to support an event queue. But that's not a high priority task, so no pressure
@@ -328,7 +230,7 @@ void setup() {
     .channel = LEDC_CHANNEL_1,
     .timer_sel = LEDC_TIMER_0,
     .gpio_num = greenPin,
-    .duty = 255, //init duty to 0%
+    .duty = 255,
     .hpoint = 0, //phase offset, doesn't matter here
     .sleep_mode = LEDC_SLEEP_MODE_KEEP_ALIVE,   //we want LED to remain on during sleep
   };
@@ -339,7 +241,7 @@ void setup() {
     .channel = LEDC_CHANNEL_2,
     .timer_sel = LEDC_TIMER_0,
     .gpio_num = bluePin,
-    .duty = 255, //init duty to 0%
+    .duty = 255,
     .hpoint = 0, //phase offset, doesn't matter here
     .sleep_mode = LEDC_SLEEP_MODE_KEEP_ALIVE,   //we want LED to remain on during sleep
   };
@@ -348,7 +250,7 @@ void setup() {
   setLEDColor(lastLED_R, lastLED_G, lastLED_B);
 
   // -----------------------------
-  // WiFi first (needed for NTP)   [[ rewrite this whole thing]
+  // WiFi first (needed for NTP)
   // -----------------------------
   wifi_init_sta();
   //WiFi.mode(WIFI_STA);
@@ -513,6 +415,7 @@ void loop() {
   //if SW1 is pressed (or if it woke the device from sleep), enter diagnostic mode
   if(gpio_get_level(sw1pin) == 0) {
     //diagnosticMode(); //diagnostic mode hasn't been fixed yet. Do nothing for now
+    uart_printf("Diagnostic mode is not available in this version, sorry :(\n");
   }
 
   uint32_t now = time(nullptr);
@@ -604,54 +507,70 @@ void loop() {
   }
   vTaskDelay(1500 / portTICK_PERIOD_MS);
   
-  /*  COMMENTED OUT UNTIL I CAN GET ONE SENSOR DONE RIGHT
-  
-  // -----
-  // Modbus Light Sensor
-  // -----
-  node.setSlaveAddress(0x2);
-  if (node.readHoldingRegisters(0x00, 3) == node.ku8MBSuccess) {
-    // illuminance (high word), illuminance (low word) [lux], status
-    // the packet expects a float, so we need to do some funky business
-    //we're just left-shifting the high word by 16 (width of the word), then bitwise or-ing it with the low word. Finally, we cast it to a float
-    sensorData.luxValue = (float)(( node.getResponseBuffer(0) << 16) | (node.getResponseBuffer(1)));
-    //the status value is as follows:
-    uint16_t status = node.getResponseBuffer(2);
-    bool offScaleHigh = (status & 1) == 1; // we're checking a specific bit of status. I think this is the best way to do it
-    bool error = (status & 2) == 2;
-    
-    if(offScaleHigh) {
-      sensorData.luxValue = 400000.f;
+  // Light sensor: Since all three registers need to be read to create the final reading,
+  // we'll just do all three readings and only proceed with the calculation if none of
+  // them produce an error.
+  bool Light_Error = false;
+  uint16_t rawLightL;
+  uint16_t rawLightH;
+  uint16_t status;
+
+  //we only proceed with the reading if all three are successful, and status doesn't
+  //indicate an error, so I think this is the simplest way to do that
+  if( modbus_read_registers(CID_LIGHT_HIGHWORD, &rawLightH) != ESP_OK ||
+      modbus_read_registers(CID_LIGHT_LOWWORD, &rawLightL) != ESP_OK || 
+      modbus_read_registers(CID_LIGHT_STATUS, &status) != ESP_OK ||
+      (status & 2) == 2 ) { //bit 2 is set if the sensor has an error
+
+    //sensor error - 
+    sensorData.luxValue = 0;
+    sensorErrors |= 0x8;
+    uart_printf("Light sensor error\n");
+  } else {
+    if((status & 1) == 1) {
+      // off-scale High reading
+      sensorData.luxValue = 400000.f; //this is the highest reading
+    } else {
+      //concatenate the high and low words
+      sensorData.luxValue = (float) ((rawLightH << 16) | rawLightL);
     }
-    if(error) {
-      sensorErrors |= 0x8;
-      uart_printf("Light sensor error\n");
-    }
-    uart_printf("Light Sensor: light value=%f lux\n", sensorData.luxValue);
+  }
+
+  if(!Light_Error) {
+    uart_printf("Light sensor: Lux=%f\n", sensorData.luxValue);
   } else {
     //error with sensor
-    sensorErrors |= 0x8;
     uart_printf("Light sensor not responding\n");
+    sensorErrors |= 0x8;
   }
   vTaskDelay(1500 / portTICK_PERIOD_MS);
-  
-  // -----
-  // Modbus Leaf Moisture
-  // -----
-  node.setSlaveAddress(0x4);
-  if (node.readHoldingRegisters(0x0, 2) == node.ku8MBSuccess) {
-    //temperature (100 units per degree C, ranges from -4000 to 8000). We need to reinterpret as a int16_t to make this work
-    //wetness percent (100 units per percent, ranges from 0 to 10000)
-  
-    //go through the process of converting this properly
-    int16_t rawTemp = uintToint(node.getResponseBuffer(0));
+    
+  bool leaf_error = false;
+  uint16_t rawTemp;
+  uint16_t rawMoisture;
+  if( modbus_read_registers(CID_LEAF_TEMP, &rawTemp) != ESP_OK) {
+    //temp read error
+    leaf_error = true;
+    sensorData.leafTemp = 0;
+  } else {
+    int16_t temp_signed = uintToint(rawTemp); //it's stored as 2's complement so we have
+                                              //to fix that.
     float leafTempC = (float)(rawTemp) / 100.f;
     sensorData.leafTemp = 32 + (1.8 * leafTempC);
+  }
 
-    sensorData.leafMoisture = (float)(node.getResponseBuffer(1)) / 100.f; //once it's a float, divide by 100 to turn it to a percent.
+  if( modbus_read_registers(CID_LEAF_MOISTURE, &rawMoisture) != ESP_OK) {
+    //moisture read error
+    leaf_error = true;
+    sensorData.leafMoisture = 0;
+  } else {
+    sensorData.leafMoisture = (float)(rawMoisture) / 100.f; //once it's a float, divide by 100 to turn it to a percent.
+  }
 
+  if(!leaf_error) {
     uart_printf("Leaf Sensor: temp=%f F, moisture=%f%%\n", sensorData.leafTemp, sensorData.leafMoisture);
   } else {
+    //error with sensor
     sensorErrors |= 0x20;
     uart_printf("Leaf sensor not responding\n");
   }
@@ -660,11 +579,18 @@ void loop() {
   // -----
   // Modbus Wind Speed
   // -----
-  node.setSlaveAddress(0x5);
-  if (node.readHoldingRegisters(0x0, 1) == node.ku8MBSuccess) {
-    //wind speed, in 0.1 m/s increments.
-    //we just cast to float, then divide by 10 to get speed in m/s
-    sensorData.windSpeed = (float)(node.getResponseBuffer(0)) / 10.0f;
+
+  uint16_t rawSpeed;
+  bool windSpeed_error=false;
+  if( modbus_read_registers(CID_WIND_SPEED, &rawSpeed) != ESP_OK) {
+    //error
+    windSpeed_error = true;
+    sensorData.windSpeed = 0;
+  } else {
+    sensorData.windSpeed = (float)(rawSpeed) / 10.0f;
+  }
+
+  if(!windSpeed_error) {
     uart_printf("Wind speed=%f m/s, ",sensorData.windSpeed);
   } else {
     //error: report/record it
@@ -673,15 +599,22 @@ void loop() {
   }
   vTaskDelay(1500 / portTICK_PERIOD_MS);
 
+    
+
   // -----
   // Modbus Wind Direction
   // -----
-  node.setSlaveAddress(0x6);
-  if (node.readHoldingRegisters(0x0, 2) == node.ku8MBSuccess) {
-    //wind direction, in tenths of a degree
-    //wind direction, rounded to nearest of 16 main directions (like NE, ESE, W, etc.)
-    
-    sensorData.windDir = (float)(node.getResponseBuffer(0)) / 10.0f;
+  uint16_t rawDir;
+  bool windDir_error = false;
+  if( modbus_read_registers(CID_WIND_DIR, &rawDir) != ESP_OK) {
+    //error
+    windDir_error = true;
+    sensorData.windDir = 0.f;
+  } else {
+    sensorData.windDir = (float)(rawDir) / 10.0f;
+  }
+
+  if(!windDir_error) {
     uart_printf("Wind direction=%f degrees\n", sensorData.windDir);
   } else {
     //error: report/record it
@@ -689,15 +622,12 @@ void loop() {
     uart_printf("Wind dir sensor not responding\n");
   }
   vTaskDelay(1500 / portTICK_PERIOD_MS);
-  */
 
   // -----------------------------
   // Battery
   // -----------------------------
   ESP_ERROR_CHECK(ina219_get_bus_voltage(&ina219, &sensorData.Voltage));
   ESP_ERROR_CHECK(ina219_get_current(&ina219, &sensorData.Current));
-  //sensorData.Voltage = ina219.getBusVoltage_V();
-  //sensorData.Current = ina219.getCurrent_mA() / 1000.0;
 
   // -----------------------------
   // Capture REAL reading timestamp (local time, EST/EDT)

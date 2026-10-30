@@ -56,68 +56,68 @@
 
 
 
-// all the stuff here can go in a header, not in the actual
-
-extern const char* ssid;
-extern const char* password;
-
-// Cloud Function Endpoint
-
 // Organization, Site, and Zone IDs
-extern const char* ORGANIZATION_ID;
-extern const char* SITE_ID;
-extern const char* ZONE_ID;  //differs between zones
-extern const short ZONE_NUM;  //likewise differs between zones
+#define ORGANIZATION_ID "GS6e4032WK70vQ42WTYc"
+#define SITE_ID "5LvgyAAaFpAmlfcUrpTU"
+#define ZONE_ID "QMtytS510w5B9iJ2Z0C4"
+#define ZONE_NUM 3
+
+// NOTE: I changed this code from zone 2 to zone 3 for the purpose of testing. I don't
+// want this code to pollute the zone2 data, and since zone3 is offline, i thought it'd
+// be a good choice.
+
+//const char* ZONE_ID         = "BKwm5W3qxjee8cIHvSQx";  //differs between zones
+//const short ZONE_NUM = 2;  //likewise differs between zones
 
 // Sensor IDs
 
 // This whole section needs to be reworked, as several sensors were added & removed
 //
-extern const char* SENSOR_ID_SOIL;
-extern const char* SENSOR_ID_CO2_TVOC;
-extern const char* SENSOR_ID_BATTERY;
+#define SENSOR_ID_SOIL "vpHzjeTQMc7fUdzUqmFN"
+#define SENSOR_ID_CO2_TVOC "8jTNyQ7lR1fgOjoOT5Yt"
+#define SENSOR_ID_BATTERY "LiVAa6Oj2CYpiIlGTuUA"
 
-extern const char* SENSOR_ID_WIND_DIR;
-extern const char* SENSOR_ID_WIND_SPEED;
-extern const char* SENSOR_ID_LEAF;
-extern const char* SENSOR_ID_LIGHT_485; //reading isn't added to the webapp yet
-extern const char* SENSOR_ID_CO2_T_H;
+#define SENSOR_ID_WIND_DIR "C2BP6ISRAa34eWEHOuwn"
+#define SENSOR_ID_WIND_SPEED "DiqIKJ7KykTOWd4SXxNK"
+#define SENSOR_ID_LEAF "O2AohIUWUOe7Sn8VnjcZ"
+#define SENSOR_ID_LIGHT_485 "sUvpUqZoS1XpBfUdicND"
+#define SENSOR_ID_CO2_T_H "dxIjJR4wp7xhZGVFxRAR"
 
 // Unit Constants
-extern const char* UNIT_FAHRENHEIT;
-extern const char* UNIT_PERCENT;
-extern const char* UNIT_LUX;
-extern const char* UNIT_PPM;
-extern const char* UNIT_PPB;
-extern const char* UNIT_MOISTURE;
-extern const char* UNIT_EC;
-extern const char* UNIT_VOLT;
-extern const char* UNIT_AMP;
+#define UNIT_FAHRENHEIT "°F"
+#define UNIT_PERCENT "%"
+#define UNIT_LUX "lux"
+#define UNIT_PPM "ppm"
+#define UNIT_PPB "ppb"
+#define UNIT_MOISTURE "VWC%"
+#define UNIT_EC "μS/cm"
+#define UNIT_VOLT "V"
+#define UNIT_AMP "A"
+#define UNIT_M_S "m/s"
+#define UNIT_DEGREE "°"
 
-extern const char* UNIT_M_S;
-extern const char* UNIT_DEGREE;
-
-
+#define SSID "Main"
+#define PASSWORD "5139191357"
 
 // -----------------------------
 // LED Pins
 // -----------------------------
 #define COMMON_ANODE true
-extern const gpio_num_t redPin; //was 0
-extern const gpio_num_t greenPin; //was 18
-extern const gpio_num_t bluePin; //was 19
+#define redPin 12
+#define greenPin 14
+#define bluePin 27
 
 
 // --------------
 // DIAGNOSTIC MODE PINS
 // --------------
 
-extern const gpio_num_t d1pin; //was 17    //  ALL UPDATED
-extern const gpio_num_t d2pin; //was 34;  now is the DHT pin
-extern const gpio_num_t d3pin; //was 35;  now is SPARE_IO_2
-extern const gpio_num_t sw1pin;
-extern const gpio_num_t sw2pin; //was 15
-extern const gpio_num_t RS485_DIR_PIN;
+#define d1pin 26
+#define d2pin 25
+#define d3pin 18
+#define sw1pin 2
+#define sw2pin 21
+#define RS485_DIR_PIN 5
 
 
 // -----------------------------

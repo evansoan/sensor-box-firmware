@@ -4,7 +4,7 @@
 extern struct Reading sensorData;
 
 // From the example code. I think this is just a handler for the Wifi events, but I'm not
-// fully sure.
+// fully sure. It appears to just try to reconnect to wifi if it gets disconnected
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
@@ -21,7 +21,6 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     uart_printf("Failed to connect to the AP\n");
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-    //ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     uart_printf("Got IP %s", IP2STR(&event->ip_info.ip));
     s_retry_num = 0;
     xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
@@ -420,6 +419,21 @@ void flushBufferedReadings() {
       }
     }
   }
+}
+
+
+// NTP STUFF
+
+//this one initializes NTP. If it fails before timeoutMs, return false
+bool ntp_init(uint32_t timeoutMs) {
+  esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
+  esp_netif_sntp_init(&config);
+
+  if(esp_netif_sntp_sync_wait(pdMS_TO_TICKS(1000)) != ESP_OK) {
+    uart_printf("Failed to update system time within 10s timeout");
+    return false;
+  }
+  return true;
 }
 
 

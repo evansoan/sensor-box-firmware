@@ -61,5 +61,6 @@ void bufferFailedReading(uint32_t readingTimestamp);
 bool sendPacket(const struct ReadingPacket* p);
 bool ensureWiFiConnected();
 
+bool ntp_init(uint32_t timeoutMs);
 
 #endif

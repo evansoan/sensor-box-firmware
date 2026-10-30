@@ -46,12 +46,12 @@ A Data dictionary is a list that defines all registers on all slave devices in n
     * THIS IS VERY HIGH PRIORITY!
   restructure packet generation to use string.h functions! [high priority]
   all IO Stuff
-    * INA219  [hopefully done?]
-    * SGP30   [low priority, don't worry about this yet]
-    * modbus sensors  [partly done, untested]
-    * color LED    [probably done?]
+    * INA219  [done, untested]
+    * SGP30   [not done.]
+    * modbus sensors  [partially done, untested]
+    * color LED    [done, untested]
     * diagnostic mode stuff [this is commented out for now, as it's low priority]
-    * serial  [possibly done?]
+    * serial  [done, untested]
   Time stuff (NTP, localtime, elapsedtime, etc)
   analog write? (i have to do pwm stuff) (only for LED colors)
   ERROR STUFF? (the functions from the sample code I've found use ESP_ERROR_CHECK. Is
@@ -85,8 +85,8 @@ this will handle the sensor address programming mode, once I finish writing it
 
 ## New Features
 
-Our updates include adding the diagnostic mode, the sensor programming mode, and adding new
-sensors.
+Our updates include adding the diagnostic mode, the sensor programming mode, and adding
+new sensors.
 
 ## TODO list:
 
